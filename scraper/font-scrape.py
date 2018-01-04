@@ -34,6 +34,7 @@ except ValueError:
     exit(1)
 
 # Create font directory
+# TODO: fix TOCTOU - implement file lock
 if not os.path.isdir(FONT_DIR):
     os.mkdir(FONT_DIR)
 else:
