@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 
 
 BASE_URL = 'https://www.1001freefonts.com/'
+FONT_DIR = os.path.abspath('../fonts')
 
 
 response = requests.get(BASE_URL)
@@ -33,16 +34,27 @@ except ValueError:
     exit(1)
 
 # Create font directory
-if not os.path.isdir('fonts'):
-    os.mkdir('fonts')
+if not os.path.isdir(FONT_DIR):
+    os.mkdir(FONT_DIR)
 else:
     print("fonts folder already exists! Exitting ...", file=sys.stderr)
     exit(1)
 
+_response_fail = 1
 for page in range(1, pages + 1):
     url = BASE_URL + "new-fonts-{page}.php".format(page=page)
 
+    # check for consecutive response fails
+    _response_fail = max(0, _response_fail - 1)
+
     response = requests.get(url)
+    if not response.content:
+        print("Failed to get response from:", url)
+        _response_fail += 1
+        if _response_fail >= 3:
+            exit(1)
+        continue
+
     soup = BeautifulSoup(response.content, 'html.parser')
 
     # Get download buttons
@@ -60,7 +72,7 @@ for page in range(1, pages + 1):
         content = requests.get(font_url).content
 
         if content and type(content) is bytes:
-            font_dir = os.path.join('fonts', font_name)
+            font_dir = os.path.join(FONT_DIR, font_name)
             try:
                 os.mkdir(font_dir)
             except FileExistsError:
