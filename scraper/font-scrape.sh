@@ -70,6 +70,8 @@ for page in range(1, pages + 1):
         font_name = search.group(1)
         file_name = search.group(0)
 
+        print("Downloading", font_name, "...")
+
         content = requests.get(font_url).content
 
         if content and type(content) is bytes:
@@ -81,4 +83,6 @@ for page in range(1, pages + 1):
 
             with open(os.path.join(font_dir, file_name), 'wb') as font_file:
                 font_file.write(content)
+
+            print("Written", font_dir)
 
