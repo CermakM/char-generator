@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 
 
 BASE_URL = 'https://www.1001freefonts.com/'
-FONT_DIR = os.path.abspath('../fonts')
+FONT_DIR = os.path.abspath('fonts')
 
 
 response = requests.get(BASE_URL)

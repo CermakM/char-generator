@@ -8,4 +8,4 @@ cd scraper
 ./make-exec.sh && ./font-scrape.sh
 ```
 
-`fonts` directory will appear in the project main directory
+`fonts` directory will be generated in callers working directory, ie. `pwd`
