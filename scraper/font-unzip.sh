@@ -3,7 +3,7 @@
 ## Unzip all zip files found in the given path
 
 
-TARGET=$1
+TARGET=`realpath $1`
 
 [ -z $TARGET ] && printf '%s\n%s\n' 'argument TARGET has not been provided' \
    'TARGET is a path to the parent font directory containing subdirectories with *.zip files' &&  exit 1
@@ -15,4 +15,4 @@ find $TARGET -name '*.zip' -type f | xargs -I{} sh -c '\
 	unzip ${font_file##*/}
 	popd >/dev/null'
 
-detox -r 'fonts'  # clean up file names
+detox -r "$TARGET"  # clean up file names
