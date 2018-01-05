@@ -75,20 +75,26 @@ for page in range(1, pages + 1):
                 'p', attrs={'class': 'detail'}
                 ).find('a').get('href')
 
-        search = re.search(r"([^/]+)(.zip)$", download_url)
+        search = re.search(r"([^/]+)\.(\w+)$", download_url)
+        if search is None:
+            print("Skipped url:", download_url, file=sys.stderr)
+            continue
+
         font_name = search.group(1)
-        file_name = search.group(0)
+        suffix = search.group(2)
+        file_name = "{}.{}".format(font_name, suffix)
+
+        font_dir = os.path.join(FONT_DIR, font_name)
+        try:
+            os.mkdir(font_dir)
+        except FileExistsError:
+            print("Skipped", font_name, file=sys.stderr)
+            continue
 
         print("Downloading", font_name, "...")
         content = requests.get(download_url).content
 
         if content and type(content) is bytes:
-            font_dir = os.path.join(FONT_DIR, font_name)
-            try:
-                os.mkdir(font_dir)
-            except FileExistsError:
-                continue
-
             with open(os.path.join(font_dir, file_name), 'wb') as font_file:
                 font_file.write(content)
 
