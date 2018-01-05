@@ -5,7 +5,7 @@ Dataset generator for OCR - generates character set with modified fonts
 #### To generate `fonts` directory
 ```bash
 cd scraper
-./make-exec.sh && ./font-scrape.sh
+./make-exec.sh && ./font-scrape
 ```
 
 `fonts` directory will be generated in callers working directory, ie. `pwd`
