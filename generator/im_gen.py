@@ -6,6 +6,8 @@ import sys
 
 from PIL import Image, ImageDraw, ImageFont
 
+from typing import Generator
+
 # globals
 CHARSET_SIZE = 0
 # IMAGE_DIR = os.environ.get('PONCO_IMAGE_DIR')
@@ -55,8 +57,9 @@ def load_font_set() -> list:
 
 
 def create_whiteboard(color='white', sample_size=(32, 32)) -> Image.Image:
-    # a bit of a cheating here - charset size is 210 (15 x 14)
-    bg_size = (15 * sample_size[0], 14 * sample_size[1])
+    from math import sqrt, ceil
+    dim = ceil(sqrt(CHARSET_SIZE))
+    bg_size = (dim * sample_size[0], dim * sample_size[1])
 
     return Image.new(mode='RGBA', size=bg_size, color=color)
 
@@ -88,7 +91,7 @@ def create_fontboard(charset, fontset, sample_size=(32, 32)):
                     ttf=font_file,
                     text='H',  # for sake of performance, assume that what works
                                # for H, works for everything else
-                    fit_size=(32, 32),
+                    fit_size=sample_size,
                     eps=8
                     )
         except OSError as e:
@@ -105,7 +108,7 @@ def create_fontboard(charset, fontset, sample_size=(32, 32)):
                     fo_x + random.randint(-3, 1),
                     fo_y + random.randint(1, 3))
             # location of char in a sample
-            char_loc = reduce(subtract, (sample_size, font.size, font_offset))
+            char_loc = reduce(subtract, (sample_size, font.getsize(char), font_offset))
             char_loc = floor_divide(char_loc, 2)
             # position of char on the board
             char_pos = init_pos + char_loc
@@ -126,8 +129,48 @@ def create_fontboard(charset, fontset, sample_size=(32, 32)):
         print('Written', board_name)
 
 
-def generate_char_images(charset, sample_size=(32, 32), *args, **kwargs):
-    pass
+def generate_char_images(charset: list, fontset: list,
+                         background=None, sample_size=(32, 32)) -> Generator[None, Image.Image, int]:
+
+    from functools import reduce
+    from numpy import subtract, floor_divide
+
+    if background is None:
+        background = Image.new('RGBA', size=sample_size, color='white')
+
+    for ttf in fontset:
+        try:
+            font = estimate_font_size(
+                ttf=ttf,
+                text='H',  # for sake of performance, assume that what works
+                           # for H, works for everything else
+                fit_size=sample_size,
+                eps=8
+            )
+        except OSError as e:
+            print("Skipping", ttf, e.args)
+            continue
+
+        init_pos = (0, 0)
+        for char in charset:
+            img = background.copy()
+            draw = ImageDraw.Draw(img)
+
+            # location of char in a sample
+            char_loc = reduce(subtract, (sample_size, font.getsize(char), font.getoffset(char)))
+            char_loc = floor_divide(char_loc, 2)
+            # position of char on the board
+            char_pos = init_pos + char_loc
+            draw.text(
+                xy=char_pos,
+                text=char,
+                font=font,
+                fill="black"
+            )
+
+            yield char, img
+
+    return 0
 
 
 if __name__ == '__main__':
@@ -144,6 +187,8 @@ if __name__ == '__main__':
     fontset = load_font_set()
     im_size = (32, 32)
 
-    create_fontboard(charset, fontset, sample_size=im_size)
+    create_fontboard(charset, fontset[:5], sample_size=im_size)
 
-
+    # char_images = generate_char_images(charset[70:75], [fontset[50]], sample_size=(128, 128))
+    # for char, img in char_images:
+    #     img.show(title=char)
