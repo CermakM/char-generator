@@ -25,7 +25,7 @@ def get_near_dim_2d(number, mode='wide') -> tuple:
 
 
 def estimate_font_size(font, text, fit_size, font_size=5, eps=3) -> int:
-    """Estimate font based on given text and fit_size.
+    """Estimate font size based on given text and fit_size.
 
     :returns: ImageFont object.
     """
@@ -40,7 +40,7 @@ def estimate_font_size(font, text, fit_size, font_size=5, eps=3) -> int:
         _err = max(fit_size) - max(w, h)
 
         font_size += 1 if _err > 0 else -1
-        _font = ImageFont.truetype(font=font, encoding='utf-8', size=int(font_size))
+        _font = ImageFont.truetype(font=font.path, encoding='utf-8', size=int(font_size))
 
     return _font.size
 

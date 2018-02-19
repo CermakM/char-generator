@@ -13,27 +13,24 @@ class CharImageGenerator:
     Given character set and font file, can generate character images and create Keras-like
     directory structure.
     """
+    default_out_dir = 'dataset'
 
     def __init__(self, out_dir: str = None, font_dct: dict = None, charset: list = None):
         """Initialize class."""
-        self.out_dir = out_dir
+        self.out_dir = out_dir or self.default_out_dir
         self.font_dct = font_dct
         self.charset = charset
 
         self.charset_size = 0 if charset is None else len(charset)
 
     @classmethod
-    def load(cls, charset_path, fontset_path, create_charset_dir=False, **kwargs):
+    def load(cls, charset_path, fonts_path, out_dir=None):
         """Loads characters and fonts and initializes CharImageGenerator class."""
+
         charset = cls.load_char_set(path=charset_path)
-        fontset = cls.load_font_set(path=fontset_path)
+        font_dct = cls.load_font_set(path=fonts_path)
 
-        out_dir = None
-        if create_charset_dir is True:
-            # create directory structure
-            out_dir = cls.create_charset_dir(charset=charset, **kwargs)
-
-        return cls(out_dir=out_dir, fontset=fontset, charset=charset)
+        return cls(out_dir=out_dir, font_dct=font_dct, charset=charset)
 
     @staticmethod
     def load_char_set(path) -> list:
@@ -45,50 +42,50 @@ class CharImageGenerator:
         return chars
 
     @staticmethod
-    def load_font_set(path) -> list:
+    def load_font_set(path) -> dict:
         """Walk through the default font directory and search for font files."""
         font_dct = dict()
         for root, _, files in os.walk(path):
             for file in files:
                 if re.match(r'(.+)\.[odtfOTF]{3}', file):
                     font_name = utils.get_file_name(file)
-                    font_dct[font_name] = ImageFont.truetype(os.path.join(root, file))
+                    try:
+                        font_dct[font_name] = ImageFont.truetype(os.path.join(root, file))
+                    except OSError:
+                        print("Invalid font: '%s'" % os.path.join(root, file), file=sys.stderr)
+                        continue
 
         return font_dct
 
-    @staticmethod
-    def create_charset_dir(charset, prefix=None, dir_name='charset', create_prefix_dir=False):
-        """Create charset directory with structure matching Keras directory model."""
+    def create_charset_dir(self, charset: list = None, dir_name='charset', create_parent_dir=False):
+        """Create charset directory with structure matching Keras directory model.
+        If custom charset provided, prefers this one, otherwise uses the one provided when initializing the generator.
+        """
 
-        if prefix is not None and not os.path.isdir(prefix):
-            if not create_prefix_dir:
-                print(
-                    "Directory {dir} passed as `prefix` does not exist."
-                    " Use `create_prefix_dir=True` to create prefix directory.",
-                    file=sys.stderr)
-                return
-            else:
-                os.mkdir(prefix)
+        dir_path = os.path.join(self.out_dir, dir_name)
 
-        if prefix is None:
-            prefix = '.'
-        elif prefix.endswith('/'):
-            # Strip the last slash from prefix path
-            prefix = prefix[:-1]
+        if charset is None:
+            charset = self.charset
 
-        charset_dir = "{prefix}/{dir_name}".format(prefix=prefix, dir_name=dir_name)
-        if os.path.isdir(charset_dir):
-            print('Directory %s already exists.' % charset_dir, file=sys.stderr)
-            return
-
-        os.mkdir(charset_dir)
+        if not os.path.isdir(dir_path):
+            try:
+                os.makedirs(dir_path, exist_ok=create_parent_dir)
+            except (FileExistsError, FileNotFoundError) as e:
+                print("Directory {dir} passed as `prefix` does not exist."
+                      " Use `create_parent_dir=True` to create prefix directory.".format(dir=dir_path),
+                      file=sys.stderr)
+                raise e
 
         for char in charset:
             char_ascii = ord(char)
-            char_dir = "{charset_dir}/{char_dir}".format(charset_dir=charset_dir, char_dir=char_ascii)
-            os.mkdir(char_dir)
+            char_dir = "{charset_dir}/{char_dir}".format(charset_dir=dir_path, char_dir=char_ascii)
+            try:
+                os.mkdir(char_dir)
+            except FileExistsError:
+                # Directory has already been created
+                continue
 
-        return charset_dir
+        return dir_path
 
     def create_char_image(self, char: chr, font_name: str, sample_size=(32, 32), bgcolor='#f6f6f6', fontcolor='black'):
         """Generate image of given size and font for each character."""
@@ -104,7 +101,7 @@ class CharImageGenerator:
                 eps=max(sample_size) // 10
             )
         except OSError as e:
-            print("Skipping", font_name, e.args)
+            print("Skipping", font_name, e.args, file=sys.stderr)
             raise OSError from e
 
         char_bg = Image.new(mode='RGB', color=bgcolor, size=sample_size)
@@ -127,7 +124,7 @@ class CharImageGenerator:
 
     def create_and_save_charsets(self, sample_size=(32, 32), bgcolor='#f6f6f6', fontcolor='black'):
         """Create char images from charset for each font in fontset and saves it into predefined directory structure."""
-        charset_dir = self.create_charset_dir(charset=self.charset, prefix=self.out_dir, create_prefix_dir=True)
+        charset_dir = self.create_charset_dir(charset=self.charset, create_parent_dir=True)
 
         for font_name, font in self.font_dct.items():
             for char in self.charset:
@@ -154,10 +151,13 @@ class CharImageGenerator:
 
         n_samples = utils.get_near_dim_2d(len(self.charset))
         board = utils.create_whiteboard(n_samples=n_samples, sample_size=sample_size)
+
         sprites_dir = "{path}/sprites".format(path=self.out_dir)
         # Make sure sprites directory exists
-        if not os.path.isdir(sprites_dir):
-            os.mkdir(sprites_dir)
+        if os.path.isdir(sprites_dir) and os.listdir(sprites_dir):
+            raise FileExistsError("Directory '%s' already exists and is not empty." % sys.stderr)
+
+        os.makedirs(sprites_dir, exist_ok=True)
 
         for font_name, font in self.font_dct.items():
             board_name = "{path}/{ttf}-board.png".format(

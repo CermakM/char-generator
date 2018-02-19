@@ -23,19 +23,15 @@ def main():
 
     parser.add_argument(
         '-p', '--prefix',
-        default='./',
         help="If provided, generated directory will be prefixed with the value of `prefix`."
     )
 
     args = parser.parse_args()
 
-    gen = CharImageGenerator.load(charset_path=args.charset,
-                                  fontset_path=args.font_dir,
-                                  create_charset_dir=True,
-                                  prefix=args.prefix
-                                  )
+    gen = CharImageGenerator.load(charset_path=args.charset, fonts_path=args.font_dir, out_dir=args.prefix)
 
-    gen.create_sprites()
+    gen.create_charset_dir(create_parent_dir=True)
+    # gen.create_sprites()
     gen.create_and_save_charsets()
 
 

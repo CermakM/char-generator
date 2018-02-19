@@ -26,14 +26,16 @@ class GeneratorTests(unittest.TestCase):
     def test_create_charset_dir_correct_path(self):
         """Check if the path to the new directory has been returned."""
         prefix = tempfile.mkdtemp()
-        charset_dir = CharImageGenerator.create_charset_dir(self.TEST_CHARSET, prefix, create_prefix_dir=True)
+        gen = CharImageGenerator(out_dir=prefix)
+        charset_dir = gen.create_charset_dir(self.TEST_CHARSET, create_parent_dir=True)
 
         self.assertTrue(charset_dir.startswith(prefix))
 
     def test_create_charset_dir(self):
         """Check if the new directory contains subdirectories matching the test_charset."""
         prefix = tempfile.mkdtemp()
-        charset_dir = CharImageGenerator.create_charset_dir(self.TEST_CHARSET, prefix, create_prefix_dir=True)
+        gen = CharImageGenerator(out_dir=prefix)
+        charset_dir = gen.create_charset_dir(self.TEST_CHARSET, create_parent_dir=True)
         charset_ascii = set(ord(c) for c in self.TEST_CHARSET)
         subdirs = set(int(dir_name) for dir_name in os.listdir(charset_dir))
 
