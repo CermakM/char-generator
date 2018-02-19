@@ -1,0 +1,6 @@
+# Folders to ignore
+.idea/
+**/fonts/
+**/__pycache__
+
+# Files to ignore
