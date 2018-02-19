@@ -1,1 +1,1 @@
-from .im_gen import CharImageGenerator
+from .imgen import CharImageGenerator
