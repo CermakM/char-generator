@@ -24,12 +24,13 @@ def get_near_dim_2d(number, mode='wide') -> tuple:
     return tuple(sorted(shape, reverse=(mode == 'wide')))
 
 
-def estimate_font_size(font, text, fit_size, font_size=5, eps=3) -> int:
+def estimate_font_size(font, text, fit_size, eps=3) -> int:
     """Estimate font size based on given text and fit_size.
 
     :returns: ImageFont object.
     """
 
+    font_size = font.size
     w, h = font.getsize(text)
     _err = max(fit_size) - max(w, h)
 

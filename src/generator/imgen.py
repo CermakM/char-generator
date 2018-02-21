@@ -57,7 +57,7 @@ class CharImageGenerator:
 
         return font_dct
 
-    def create_charset_dir(self, charset: list = None, dir_name='charset', create_parent_dir=False):
+    def create_charset_dir(self, charset: list = None, dir_name='charset', test_train_split=True, create_parent_dir=False):
         """Create charset directory with structure matching Keras directory model.
         If custom charset provided, prefers this one, otherwise uses the one provided when initializing the generator.
         """
@@ -93,13 +93,17 @@ class CharImageGenerator:
         font = self.font_dct[font_name]
 
         try:
-            font.size = utils.estimate_font_size(
+            font_size = utils.estimate_font_size(
                 font=font,
                 text=char,  # for sake of performance, assume that what works
                 # for H, works for everything else
                 fit_size=(32, 32),
                 eps=max(sample_size) // 10
             )
+            # Sadly, setting font.size is not sufficient and it is necessary create a new font
+            if font_size != font.size:
+                # replace it in the dict to be estimated in the future faster
+                self.font_dct[font_name] = ImageFont.truetype(font=font.path, size=font_size)
         except OSError as e:
             print("Skipping", font_name, e.args, file=sys.stderr)
             raise OSError from e
@@ -133,6 +137,8 @@ class CharImageGenerator:
                 except OSError:
                     # Skip the font completely
                     break
+                # Create augmanted images
+
                 char_img_path = "{charset_dir}/{char_dir}/{font_name}.png".format(
                     charset_dir=charset_dir,
                     char_dir=ord(char),  # The directory structure expects char ordinal
