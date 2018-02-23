@@ -4,11 +4,15 @@ This script assumes that the fonts have already been obtained using scraper.
 """
 
 import argparse
+import colorama
 
 from src.generator import CharImageGenerator
 
 
 def main():
+    # Initialize colored output
+    colorama.init()
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -30,11 +34,14 @@ def main():
 
     gen = CharImageGenerator.load(charset_path=args.charset, fonts_path=args.font_dir, out_dir=args.prefix)
 
-    gen.create_charset_dir(create_parent_dir=True)
-    # gen.create_sprites()
-    gen.create_and_save_charsets()
+    print(f"{colorama.Fore.YELLOW}Creating sprite sheets ...")
+    gen.create_sprites()  # Generates sprite sheets as a preview of fonts - no augmentation performed
+    print(f"{colorama.Fore.GREEN}Sprite sheets have been created successfully.")
+
+    print(f"{colorama.Fore.YELLOW}Generating character images ...")
+    gen.create_and_save_charsets(test_train_split=True)  # Also creates default charset dir if not existent
+    print(f"{colorama.Fore.GREEN}Image generation completed successfully.")
 
 
 if __name__ == '__main__':
-    # TODO: this script could be more modular - could accept charset and fonts directory as a parameter
     main()

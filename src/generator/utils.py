@@ -46,7 +46,7 @@ def estimate_font_size(font, text, fit_size, eps=3) -> int:
     return _font.size
 
 
-def create_whiteboard(shape=None, n_samples=None, color='#f4f4f4', sample_size=(32, 32)) -> Image.Image:
+def create_whiteboard(shape=None, n_samples=None, fill='#f4f4f4', sample_size=(32, 32)) -> Image.Image:
     """Computes and Creates white board (background) for the given font."""
     if not any([n_samples, shape]):
         print("Either `n_samples` or `shape` must be provided.")
@@ -60,7 +60,7 @@ def create_whiteboard(shape=None, n_samples=None, color='#f4f4f4', sample_size=(
         assert len(shape) == 2, "expected `shape` argument to be 2-D vector, but is %i-D vector" % len(shape)
         bg_size = shape
 
-    return Image.new(mode='RGBA', size=bg_size, color=color)
+    return Image.new(mode='RGBA', size=bg_size, color=fill)
 
 
 def get_text_loc_in_sample(text, font: ImageFont, sample_size, offset='random'):

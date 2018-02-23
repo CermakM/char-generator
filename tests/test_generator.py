@@ -55,7 +55,31 @@ class GeneratorTests(unittest.TestCase):
     def test_generate_char_images(self):
         import types
         prefix = tempfile.mkdtemp()
-        gen = CharImageGenerator(out_dir=prefix)
-        image_generator = gen.generate_char_images(charset, font_name)
+        n_samples = 3
+        gen = CharImageGenerator(out_dir=prefix, charset=self.TEST_CHARSET)
+        image_generator = gen.generate_char_images(n_samples=n_samples, augment=True)
 
         self.assertIsInstance(image_generator, types.GeneratorType)
+
+        expected_img_count = len(self.TEST_CHARSET) * n_samples
+        img_count = sum(1 for _ in image_generator)
+
+        self.assertEqual(img_count, expected_img_count, msg="Number of generated images"
+                                                            " does not match the expected value.")
+
+    def test_create_and_save_charsets_default(self):
+        prefix = tempfile.mkdtemp()
+        n_samples = 3
+        gen = CharImageGenerator(out_dir=prefix, charset=self.TEST_CHARSET)
+        gen.create_and_save_charsets(test_train_split=True, n_samples=n_samples, augment=True)
+
+        # check that the dataset has been split into the test and train directory
+        self.assertEqual(set(os.listdir(prefix)), {'test_data', 'train_data'})
+        #   and that they are not empty
+        expected_img_count = len(self.TEST_CHARSET) * n_samples
+        img_count = 0
+        for root, _, walkfiles in os.walk(prefix):
+            img_count += len(walkfiles)
+
+        self.assertEqual(img_count, expected_img_count, msg="Number of created images"
+                                                            " does not match the expected value.")
