@@ -46,7 +46,12 @@ def random_warp(image_array: ndarray):
     return warped
 
 
-def apply_random_transformation(input_folder: str, output_folder: str, limit=None, img_type='png'):
+def apply_random_transformation(
+        input_folder: str,
+        output_folder: str,
+        recurse=False,
+        limit=None,
+        img_type='png'):
     """Load images from directory."""
     if not os.path.isdir(output_folder):
         os.makedirs(output_folder, exist_ok=True)
@@ -59,10 +64,18 @@ def apply_random_transformation(input_folder: str, output_folder: str, limit=Non
     ]
 
     # find all files paths from the input_folder
-    image_files = [
-        os.path.join(input_folder, f) for f in os.listdir(input_folder)
-        if os.path.isfile(os.path.join(input_folder, f)) and f.endswith(img_type)
-    ]
+    image_files = list()
+    if not recurse:
+        image_files = [
+            os.path.join(input_folder, f) for f in os.listdir(input_folder)
+            if os.path.isfile(os.path.join(input_folder, f)) and f.endswith(img_type)
+        ]
+    else:
+        for root, walkdir, walkfiles in os.walk(input_folder):
+            image_files.extend([
+                os.path.join(root, f) for f in walkfiles
+                if f.endswith(img_type)
+            ])
 
     limit = limit or len(image_files)
 
@@ -97,7 +110,7 @@ def parse_args(argv):
     )
     parser.add_argument(
         '-o', '--output-dir',
-        default=os.path.abspath(__file__),
+        default=os.path.join(os.path.dirname(__file__), 'augmented_images'),
         help="Output directory."
     )
     parser.add_argument(
@@ -110,6 +123,11 @@ def parse_args(argv):
         default=None,
         help="Limit number of images to apply transformation to."
     )
+    parser.add_argument(
+        '-r', '--recurse',
+        action='store_true',
+        help="Recursively find images in the input directory."
+    )
 
     return parser.parse_args(argv)
 
@@ -121,6 +139,7 @@ def main(argv):
     apply_random_transformation(
         input_folder=args.input_dir,
         output_folder=args.output_dir,
+        recurse=args.recurse,
         limit=args.limit,
         img_type=args.format
     )
