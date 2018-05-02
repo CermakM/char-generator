@@ -18,7 +18,7 @@ from skimage import io
 def random_rotation(image_array: ndarray):
     """Pick a random degree of rotation between 25% on the left and 25% on the right."""
     random_degree = random.uniform(-25, 25)
-    return transform.rotate(image_array, random_degree)
+    return transform.rotate(image_array, random_degree, mode='symmetric')
 
 
 def random_noise(image_array: ndarray):
@@ -31,7 +31,7 @@ def random_translation(image_array: ndarray):
     tform = transform.SimilarityTransform(
         translation=(random.randint(-5, 5), random.randint(-5, 5))
     )
-    translated = transform.warp(image_array, tform)
+    translated = transform.warp(image_array, tform, mode='symmetric')
 
     return translated
 
