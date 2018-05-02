@@ -48,6 +48,8 @@ def random_warp(image_array: ndarray):
 
 def apply_random_transformation(input_folder: str, output_folder: str, limit=None, img_type='png'):
     """Load images from directory."""
+    if not os.path.isdir(output_folder):
+        os.makedirs(output_folder, exist_ok=True)
 
     available_transformations = [
         random_rotation,
