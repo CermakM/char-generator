@@ -4,6 +4,9 @@ import argparse
 import os
 import sys
 import random
+
+import numpy as np
+
 from scipy import ndarray
 
 # image processing library
@@ -26,7 +29,7 @@ def random_noise(image_array: ndarray):
 def random_translation(image_array: ndarray):
     """Apply random translation transformation to the image."""
     tform = transform.SimilarityTransform(
-        translation=(random.randint(-3, 3), random.randint(-3, 3))
+        translation=(random.randint(-5, 5), random.randint(-5, 5))
     )
     translated = transform.warp(image_array, tform)
 
@@ -35,14 +38,18 @@ def random_translation(image_array: ndarray):
 
 def random_warp(image_array: ndarray):
     """Apply random warp transformation to the image."""
-    from math import pi
-    tform = transform.SimilarityTransform(
-        scale=1,
-        rotation=pi/4,
-        translation=(image_array.shape[0]/2, -100)
-    )
 
-    warped = transform.warp(image_array, tform)
+    a = image_array.shape[1] / random.randint(4, 8)
+    w = random.uniform(-1.0, 1.0) / image_array.shape[0]
+
+    warped = image_array.copy()
+    for i in range(image_array.shape[0]):
+        shift = int(np.ceil(a * np.sin(2.0 * np.pi * i * w)))
+        warped[i, :] = np.roll(
+            warped[i, :],
+            shift=shift
+        )
+
     return warped
 
 

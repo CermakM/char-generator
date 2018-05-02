@@ -60,6 +60,10 @@ class TestDataAugmentation(unittest.TestCase):
         img = images[0]
         transformed_img = daug.random_warp(img)
 
+        import matplotlib.pyplot as plt
+        io.imshow(transformed_img)
+        plt.show()
+
         self.assertTrue(transformed_img.any())
         self.assertFalse(array_equal(img, transformed_img))
 
