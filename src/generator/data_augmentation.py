@@ -137,6 +137,7 @@ def parse_args(argv):
     )
     parser.add_argument(
         '-n', '--limit',
+        type=int,
         default=None,
         help="Limit number of images to apply transformation to."
     )
