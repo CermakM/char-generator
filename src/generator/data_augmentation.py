@@ -127,7 +127,7 @@ def parse_args(argv):
     )
     parser.add_argument(
         '-o', '--output-dir',
-        default=os.path.join(os.path.dirname(__file__), 'augmented_images'),
+        default=os.path.join(os.path.dirname(os.getcwd()), 'augmented_images'),
         help="Output directory."
     )
     parser.add_argument(
