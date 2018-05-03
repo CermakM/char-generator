@@ -58,6 +58,7 @@ def apply_random_transformation(
         output_folder: str,
         recurse=False,
         limit=None,
+        ignore_label=False,
         img_type='png'):
     """Load images from directory."""
     if not os.path.isdir(output_folder):
@@ -89,7 +90,7 @@ def apply_random_transformation(
     num_generated_files = 0
     while num_generated_files < limit:
         # random image from the input_folder
-        image_path = random.choice(image_files)
+        image_path: str = random.choice(image_files)
         # read image as an two dimensional array of pixels
         image_to_transform = io.imread(image_path, as_grey=True)
         # random num of transformation to apply
@@ -99,7 +100,16 @@ def apply_random_transformation(
         # apply transformation
         transformed_image = transformation(image_to_transform)
 
-        new_file_path = '%s/augmented_image_%s.jpg' % (output_folder, num_generated_files)
+        label = ""
+        if not ignore_label:
+            label = image_path.rsplit('/')[-2]
+        out_dir = os.path.join(output_folder, label)
+        os.makedirs(out_dir, exist_ok=True)
+
+        new_file_path = "{out_dir}/augmented_image_{id}.jpg".format(
+            out_dir=out_dir,
+            id=num_generated_files
+        )
 
         # write image to the disk
         io.imsave(new_file_path, transformed_image)

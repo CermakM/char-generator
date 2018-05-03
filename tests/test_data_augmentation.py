@@ -73,4 +73,8 @@ class TestDataAugmentation(unittest.TestCase):
             limit=limit
         )
 
-        self.assertEqual(len(os.listdir(output_folder)), limit)
+        self.assertEqual(len(os.listdir(output_folder)), 1)
+        self.assertEqual(
+            len(os.listdir(os.path.join(output_folder, '49'))),
+            limit
+        )
